@@ -84,6 +84,8 @@ class Settings(BaseSettings):
     ANALYTICS_RETENTION_DAYS: int = Field(default=30, description="Analytics historical metric retention period in days")
     VERIFICATION_PROVIDER: str = Field(default="composite", description="Selected verification provider (mock, mx, smtp, composite, etc.)")
     CORS_ORIGINS: list[str] = Field(default=["*"], description="CORS Allowed Origins")
+    UPLOAD_DIR: str = Field(default="", description="Custom upload storage directory path")
+    EXPORT_DIR: str = Field(default="", description="Custom export storage directory path")
 
     model_config = SettingsConfigDict(
         env_file=".env",
