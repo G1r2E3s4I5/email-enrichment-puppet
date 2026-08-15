@@ -83,6 +83,7 @@ class Settings(BaseSettings):
     EXPORT_STREAM_SIZE: int = Field(default=1000, description="Streaming export row chunk size")
     ANALYTICS_RETENTION_DAYS: int = Field(default=30, description="Analytics historical metric retention period in days")
     VERIFICATION_PROVIDER: str = Field(default="composite", description="Selected verification provider (mock, mx, smtp, composite, etc.)")
+    CORS_ORIGINS: list[str] = Field(default=["*"], description="CORS Allowed Origins")
 
     model_config = SettingsConfigDict(
         env_file=".env",

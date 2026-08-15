@@ -39,11 +39,18 @@ class CorrelationIdMiddleware(BaseHTTPMiddleware):
 def setup_middlewares(app) -> None:
     """Register application HTTP middlewares including CORS and Correlation ID headers."""
     from fastapi.middleware.cors import CORSMiddleware
+    from app.config.settings import settings
+
+    cors_origins = settings.CORS_ORIGINS
+    allow_creds = True
+    if not cors_origins or "*" in cors_origins:
+        # Starlette CORS middleware raises an error if allow_origins=['*'] and allow_credentials=True
+        allow_creds = False
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
+        allow_origins=cors_origins,
+        allow_credentials=allow_creds,
         allow_methods=["*"],
         allow_headers=["*"],
     )

@@ -3,6 +3,7 @@
 import time
 from typing import Dict, Any
 from fastapi import APIRouter
+from app.config.logging import logger
 from app.schemas.health import ServiceStatusResponse, HealthCheckResponse
 from app.database.supabase import check_supabase_health
 from app.providers.brandfetch_provider import BrandfetchDomainProvider
