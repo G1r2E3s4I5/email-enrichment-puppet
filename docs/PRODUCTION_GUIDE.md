@@ -64,8 +64,8 @@ docker-compose up -d --build
 docker-compose logs -f backend worker
 
 # 4. Verify system health probes
-curl http://localhost:8000/api/health/ready
-curl http://localhost:8000/api/health/live
+curl http://localhost:8000/health/ready
+curl http://localhost:8000/health/live
 ```
 
 ---

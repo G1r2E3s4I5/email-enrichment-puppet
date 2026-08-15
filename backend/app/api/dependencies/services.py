@@ -37,7 +37,14 @@ def get_redis_client() -> Optional[redis.Redis]:
         return _redis_client
 
     try:
+        use_url = False
         if settings.REDIS_URL:
+            use_url = True
+            if "localhost" in settings.REDIS_URL or "127.0.0.1" in settings.REDIS_URL:
+                if settings.REDIS_HOST not in ("localhost", "127.0.0.1"):
+                    use_url = False
+
+        if use_url:
             _redis_client = redis.Redis.from_url(
                 settings.REDIS_URL,
                 socket_timeout=settings.REDIS_SOCKET_TIMEOUT,

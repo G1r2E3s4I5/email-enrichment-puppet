@@ -2,6 +2,7 @@
 
 import os
 import time
+from typing import Optional
 from uuid import uuid4
 from app.config.logging import logger
 from app.core.exceptions import ConfigurationException, ValidationException
