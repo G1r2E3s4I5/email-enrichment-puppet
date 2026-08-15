@@ -5,20 +5,29 @@ import time
 from typing import Optional
 from uuid import uuid4
 from app.config.logging import logger
+from app.config.settings import settings
 from app.core.exceptions import ConfigurationException, ValidationException
 
 
 class CSVUploadService:
-    """Service handling disk persistence of uploaded CSV files into /uploads directory."""
+    """Service handling disk persistence of uploaded CSV files into writable application directory."""
 
     def __init__(self, upload_dir: Optional[str] = None) -> None:
         """Initialize upload service with target directory."""
         if upload_dir:
             self._upload_dir = upload_dir
+        elif getattr(settings, "UPLOAD_DIR", None) and settings.UPLOAD_DIR.strip():
+            self._upload_dir = settings.UPLOAD_DIR
         else:
-            # Default to project root /uploads directory
-            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-            self._upload_dir = os.path.join(base_dir, "uploads")
+            # Resolve to backend root directory (/app in Docker container, or <workspace>/backend locally)
+            backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+            workspace_uploads = os.path.abspath(os.path.join(backend_dir, "..", "uploads"))
+
+            # Use workspace root uploads if it exists and is writable (and not root /uploads), otherwise backend_dir/uploads (/app/uploads in Docker)
+            if os.path.exists(workspace_uploads) and os.access(workspace_uploads, os.W_OK) and workspace_uploads != "/uploads":
+                self._upload_dir = workspace_uploads
+            else:
+                self._upload_dir = os.path.join(backend_dir, "uploads")
 
         os.makedirs(self._upload_dir, exist_ok=True)
 
