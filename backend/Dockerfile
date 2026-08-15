@@ -18,7 +18,7 @@ WORKDIR /app
 
 # Non-root security user
 RUN useradd -m -u 1000 appuser && \
-    mkdir -p /app/logs && \
+    mkdir -p /app/logs /app/uploads /app/exports && \
     chown -R appuser:appuser /app
 
 COPY --from=builder /root/.local /home/appuser/.local
@@ -33,4 +33,4 @@ USER appuser
 
 EXPOSE 8000
 
-CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 4
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
