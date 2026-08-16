@@ -8,7 +8,6 @@ import {
   ShieldCheck,
   Building,
   Zap,
-  Square,
   StopCircle,
 } from 'lucide-react';
 import { ApiService } from '../services/api';
@@ -95,7 +94,6 @@ export const JobDetailPage: React.FC = () => {
   const totalRows = job.total_rows ?? 0;
   const processedRows = job.processed_rows ?? 0;
   const successfulRows = job.successful_rows ?? 0;
-  const pct = totalRows > 0 ? roundPct((processedRows / totalRows) * 100) : 0;
   const accuracyRate = stats?.verification_success_rate ?? stats?.success_rate_percentage ?? (totalRows > 0 ? roundPct((successfulRows / totalRows) * 100) : 0);
   const cacheHitRatio = stats?.cache_hit_rate ?? stats?.cache_hit_rate_percentage ?? 0;
   const totalCandidates = stats?.total_candidates_generated ?? stats?.candidates_generated_total ?? (successfulRows ? successfulRows * 23 : 0);
