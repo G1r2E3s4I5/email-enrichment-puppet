@@ -86,7 +86,7 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = Field(default=["*"], description="CORS Allowed Origins")
     UPLOAD_DIR: str = Field(default="", description="Custom upload storage directory path")
     EXPORT_DIR: str = Field(default="", description="Custom export storage directory path")
-    ENABLE_INPROCESS_WORKER: bool = Field(default=False, description="Auto-start in-process enrichment worker inside FastAPI lifespan")
+    ENABLE_INPROCESS_WORKER: bool = Field(default=True, description="Auto-start in-process enrichment worker inside FastAPI lifespan")
 
     model_config = SettingsConfigDict(
         env_file=".env",

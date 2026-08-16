@@ -67,7 +67,7 @@ class WorkerManager:
 
     def start_worker(self) -> WorkerStartResponse:
         """Launch background worker execution loop in an asyncio task."""
-        if self._worker.state.running and self._task and not self._task.done():
+        if self._worker.state.running or (self._task and not self._task.done()):
             logger.info("Worker start requested, but worker is already running.")
             return WorkerStartResponse(
                 success=True,
