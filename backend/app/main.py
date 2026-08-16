@@ -26,20 +26,25 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(f"Starting {APP_NAME} v{APP_VERSION} in [{settings.ENVIRONMENT}] mode.")
     logger.info("Initializing system architecture and registering provider interfaces.")
 
-    from app.workers.worker_manager import WorkerManager
-    try:
-        wm = WorkerManager.get_instance()
-        wm.start_worker()
-        logger.info("Auto-started background EnrichmentWorker loop on app startup.")
-    except Exception as exc:
-        logger.warning(f"Could not auto-start background worker on startup: {str(exc)}")
+    if getattr(settings, "ENABLE_INPROCESS_WORKER", False):
+        from app.workers.worker_manager import WorkerManager
+        try:
+            wm = WorkerManager.get_instance()
+            wm.start_worker()
+            logger.info("Auto-started background EnrichmentWorker loop on app startup.")
+        except Exception as exc:
+            logger.warning(f"Could not auto-start background worker on startup: {str(exc)}")
+    else:
+        logger.info("In-process background worker disabled (ENABLE_INPROCESS_WORKER=False). Worker service runs as separate container/process.")
 
     yield
 
-    try:
-        WorkerManager.get_instance().stop_worker()
-    except Exception:
-        pass
+    if getattr(settings, "ENABLE_INPROCESS_WORKER", False):
+        try:
+            from app.workers.worker_manager import WorkerManager
+            WorkerManager.get_instance().stop_worker()
+        except Exception:
+            pass
 
     logger.info(f"Shutting down {APP_NAME} gracefully.")
 

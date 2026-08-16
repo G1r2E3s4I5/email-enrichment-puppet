@@ -116,14 +116,20 @@ class EnrichmentWorker:
         while self._state.running and not self._stop_requested:
             try:
                 status_str = "PROCESSING" if self._state.current_job else "IDLE"
-                self._redis_queue_service.register_worker_heartbeat(
+                await asyncio.to_thread(
+                    self._redis_queue_service.register_worker_heartbeat,
                     worker_id=self.worker_id,
                     current_job_id=str(self._state.current_job) if self._state.current_job else None,
                     processed_count=self._state.processed_jobs,
                     worker_status=status_str,
                 )
                 if self._state.current_job:
-                    self._lock_service.renew_lock(str(self._state.current_job), self.worker_id, ttl_sec=300)
+                    await asyncio.to_thread(
+                        self._lock_service.renew_lock,
+                        str(self._state.current_job),
+                        self.worker_id,
+                        300,
+                    )
             except Exception as exc:
                 logger.warning(f"Heartbeat loop exception for worker '{self.worker_id}': {str(exc)}")
             await asyncio.sleep(getattr(settings, "WORKER_HEARTBEAT_INTERVAL", 5.0))
@@ -139,9 +145,9 @@ class EnrichmentWorker:
 
         while self._state.running and not self._stop_requested:
             try:
-                # Check queue & dequeue
-                q_len = self._redis_queue_service.get_queue_size()
-                payload = self._redis_queue_service.dequeue_job()
+                # Check queue & dequeue in thread pool to prevent blocking asyncio loop
+                q_len = await asyncio.to_thread(self._redis_queue_service.get_queue_size)
+                payload = await asyncio.to_thread(self._redis_queue_service.dequeue_job)
 
                 if payload is None:
                     self._state.current_job = None
@@ -150,7 +156,8 @@ class EnrichmentWorker:
                     continue
 
                 # Acquire Distributed Lock
-                acquired_lock = self._lock_service.acquire_lock(
+                acquired_lock = await asyncio.to_thread(
+                    self._lock_service.acquire_lock,
                     lock_key=payload.job_id,
                     owner_id=self.worker_id,
                     ttl_sec=300,
@@ -172,7 +179,7 @@ class EnrichmentWorker:
                     await self.process_job(payload, job_start_clock)
                     self._state.increment_processed_jobs()
                 finally:
-                    self._lock_service.release_lock(payload.job_id, self.worker_id)
+                    await asyncio.to_thread(self._lock_service.release_lock, payload.job_id, self.worker_id)
                     self._state.current_job = None
 
             except Exception as exc:
