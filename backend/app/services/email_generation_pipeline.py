@@ -338,6 +338,11 @@ class EmailGenerationPipeline:
                     return row_num, []
 
                 normalized_name = normalize_name_input(first_name, last_name)
+                has_person_name = bool(normalized_name.first_name or normalized_name.last_name)
+                name_extracted_str = f"{normalized_name.first_name} {normalized_name.last_name}".strip() if has_person_name else "N/A"
+                gen_mode = "PERSON_SPECIFIC" if has_person_name else "ROLE_FALLBACK"
+                role_fallback_used = "YES" if not has_person_name else "NO"
+
                 verified_candidates_data: List[Dict[str, Any]] = []
                 match_found = False
 
@@ -350,11 +355,7 @@ class EmailGenerationPipeline:
                 cached_company = self._company_domain_repo.get_by_domain(domain)
                 preferred_pattern_name = cached_company.preferred_pattern if (cached_company and cached_company.preferred_pattern) else None
 
-                if not normalized_name.first_name and not normalized_name.last_name:
-                    logger.info(
-                        f"[Row {row_num}]: No person name provided for domain '{domain}'. "
-                        "Generating generic corporate role candidates (info@, contact@, hello@, support@, sales@)."
-                    )
+                if not has_person_name:
                     clean_dom = domain.strip().lower()
                     all_raw = [
                         (f"info@{clean_dom}", "generic_info", 0.90),
@@ -363,8 +364,26 @@ class EmailGenerationPipeline:
                         (f"support@{clean_dom}", "generic_support", 0.80),
                         (f"sales@{clean_dom}", "generic_sales", 0.80),
                     ]
+                    tier_1_cands = []
+                    tier_2_cands = []
                 else:
                     all_raw = self._pattern_service.generate_candidate_permutations(name=normalized_name, domain=domain)
+                    tier_1_cands = [
+                        c[0] for c in all_raw
+                        if (p := self._pattern_service.get_pattern_by_name(c[1])) and p.tier == 1
+                    ]
+                    tier_2_cands = [
+                        c[0] for c in all_raw
+                        if c[0] not in tier_1_cands
+                    ]
+
+                logger.info(
+                    f"[Row {row_num}] Name extracted: '{name_extracted_str}' | "
+                    f"Candidate generation mode: {gen_mode} | "
+                    f"Tier 1 candidates: {len(tier_1_cands)} ({tier_1_cands[:3]}...) | "
+                    f"Tier 2 candidates: {len(tier_2_cands)} ({tier_2_cands[:3]}...) | "
+                    f"Role fallback used: {role_fallback_used}"
+                )
 
                 # Insert existing email as top-priority candidate
                 existing_email = spec.get("existing_email")
@@ -406,6 +425,18 @@ class EmailGenerationPipeline:
                 logger.info(f"[Row {row_num}]: Total verification took {row_ms}ms for {len(verified_candidates_data)} candidates")
 
                 ranked_verified = self._rank_service.rank_verified_candidates(verified_candidates_data)
+
+                top_cand = ranked_verified[0] if ranked_verified else None
+                selected_cand_str = top_cand.candidate_email if top_cand else "N/A"
+                sel_reason_str = (
+                    f"Rank 1 composite score {top_cand.final_score} "
+                    f"(status={top_cand.verification_status}, pattern={top_cand.pattern_name})"
+                ) if top_cand else "No candidates generated"
+
+                logger.info(
+                    f"[Row {row_num}] Selected candidate: '{selected_cand_str}' | "
+                    f"Reason for selection: {sel_reason_str}"
+                )
 
                 candidate_entities: List[GeneratedEmailCandidate] = []
                 for rv in ranked_verified:

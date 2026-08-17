@@ -24,93 +24,53 @@ class PatternDefinition:
 # Supported corporate email pattern library trained from 81 verified Apollo contacts.
 # Real-world frequency: first.last=56.8%, first.l=16%, first=13.6%, firstlast/flast=4.9% each, last.first=2.5%
 SUPPORTED_PATTERNS: List[PatternDefinition] = [
-    # --- Tier 1: High-frequency patterns (backed by real Apollo data) ---
+    # --- Tier 1: Primary person-specific corporate patterns ---
     PatternDefinition(
         name="first.last",
         template="{first}.{last}",
-        description="First name dot last name (e.g. john.doe@domain) — 56.8% of real emails",
+        description="First name dot last name (e.g. john.doe@domain)",
         base_confidence=0.95,
-        tier=1,
-        requires_last_name=True,
-    ),
-    PatternDefinition(
-        name="firstname.l",
-        template="{first}.{l}",
-        description="First name dot last initial (e.g. karishma.d@domain) — 16.0% of real emails",
-        base_confidence=0.92,
-        tier=1,
-        requires_last_name=True,
-    ),
-    PatternDefinition(
-        name="first",
-        template="{first}",
-        description="First name only (e.g. basil@domain) — 13.6% of real emails",
-        base_confidence=0.90,
-        tier=1,
-    ),
-    PatternDefinition(
-        name="firstinitiallastname",
-        template="{f}{last}",
-        description="First initial + last name no dot (e.g. mgupta@domain) — 4.9% of real emails",
-        base_confidence=0.85,
         tier=1,
         requires_last_name=True,
     ),
     PatternDefinition(
         name="firstlast",
         template="{first}{last}",
-        description="First + last concatenated (e.g. sakshigupta@domain) — 4.9% of real emails",
-        base_confidence=0.80,
+        description="First + last concatenated (e.g. johndoe@domain)",
+        base_confidence=0.92,
         tier=1,
         requires_last_name=True,
+    ),
+    PatternDefinition(
+        name="firstinitiallastname",
+        template="{f}{last}",
+        description="First initial + last name no dot (e.g. jdoe@domain)",
+        base_confidence=0.90,
+        tier=1,
+        requires_last_name=True,
+    ),
+    PatternDefinition(
+        name="first",
+        template="{first}",
+        description="First name only (e.g. john@domain)",
+        base_confidence=0.88,
+        tier=1,
     ),
     PatternDefinition(
         name="f.lastname",
         template="{f}.{last}",
-        description="First initial dot last name (e.g. m.gupta@domain)",
-        base_confidence=0.78,
-        tier=1,
-        requires_last_name=True,
-    ),
-    PatternDefinition(
-        name="firstlastinitial",
-        template="{first}{l}",
-        description="First name + last initial no dot (e.g. johnd@domain)",
-        base_confidence=0.75,
-        tier=1,
-        requires_last_name=True,
-    ),
-    PatternDefinition(
-        name="last.first",
-        template="{last}.{first}",
-        description="Last name dot first name (e.g. ashish.machiraju@domain) — 2.5% of real emails",
-        base_confidence=0.72,
-        tier=1,
-        requires_last_name=True,
-    ),
-    PatternDefinition(
-        name="first_last",
-        template="{first}_{last}",
-        description="First name underscore last name (e.g. john_doe@domain)",
-        base_confidence=0.68,
-        tier=1,
-        requires_last_name=True,
-    ),
-    PatternDefinition(
-        name="first-last",
-        template="{first}-{last}",
-        description="First name hyphen last name (e.g. john-doe@domain)",
-        base_confidence=0.65,
+        description="First initial dot last name (e.g. j.doe@domain)",
+        base_confidence=0.85,
         tier=1,
         requires_last_name=True,
     ),
 
-    # --- Tier 2: Less common patterns (still valid, lower real-world frequency) ---
+    # --- Tier 2: Secondary person-specific corporate patterns ---
     PatternDefinition(
-        name="last.f",
-        template="{last}.{f}",
-        description="Last name dot first initial (e.g. sony.s@domain) — 1.2% of real emails",
-        base_confidence=0.60,
+        name="last.first",
+        template="{last}.{first}",
+        description="Last name dot first name (e.g. doe.john@domain)",
+        base_confidence=0.80,
         tier=2,
         requires_last_name=True,
     ),
@@ -118,7 +78,39 @@ SUPPORTED_PATTERNS: List[PatternDefinition] = [
         name="lastnamefirstinitial",
         template="{last}{f}",
         description="Last name + first initial (e.g. doej@domain)",
-        base_confidence=0.58,
+        base_confidence=0.78,
+        tier=2,
+        requires_last_name=True,
+    ),
+    PatternDefinition(
+        name="first_last",
+        template="{first}_{last}",
+        description="First name underscore last name (e.g. john_doe@domain)",
+        base_confidence=0.75,
+        tier=2,
+        requires_last_name=True,
+    ),
+    PatternDefinition(
+        name="first-last",
+        template="{first}-{last}",
+        description="First name hyphen last name (e.g. john-doe@domain)",
+        base_confidence=0.72,
+        tier=2,
+        requires_last_name=True,
+    ),
+    PatternDefinition(
+        name="firstname.l",
+        template="{first}.{l}",
+        description="First name dot last initial (e.g. john.d@domain)",
+        base_confidence=0.70,
+        tier=2,
+        requires_last_name=True,
+    ),
+    PatternDefinition(
+        name="firstlastinitial",
+        template="{first}{l}",
+        description="First name + last initial no dot (e.g. johnd@domain)",
+        base_confidence=0.68,
         tier=2,
         requires_last_name=True,
     ),
@@ -126,7 +118,15 @@ SUPPORTED_PATTERNS: List[PatternDefinition] = [
         name="f_lastname",
         template="{f}_{last}",
         description="First initial underscore last name (e.g. j_doe@domain)",
-        base_confidence=0.55,
+        base_confidence=0.65,
+        tier=2,
+        requires_last_name=True,
+    ),
+    PatternDefinition(
+        name="last.f",
+        template="{last}.{f}",
+        description="Last name dot first initial (e.g. doe.j@domain)",
+        base_confidence=0.60,
         tier=2,
         requires_last_name=True,
     ),
@@ -134,7 +134,7 @@ SUPPORTED_PATTERNS: List[PatternDefinition] = [
         name="last",
         template="{last}",
         description="Last name only (e.g. doe@domain)",
-        base_confidence=0.50,
+        base_confidence=0.55,
         tier=2,
         requires_last_name=True,
     ),
@@ -142,7 +142,7 @@ SUPPORTED_PATTERNS: List[PatternDefinition] = [
         name="last_first",
         template="{last}_{first}",
         description="Last name underscore first name (e.g. doe_john@domain)",
-        base_confidence=0.48,
+        base_confidence=0.50,
         tier=2,
         requires_last_name=True,
     ),
@@ -220,6 +220,13 @@ class EmailPatternService:
     def __init__(self, patterns: Optional[List[PatternDefinition]] = None) -> None:
         """Initialize pattern service with pattern list."""
         self._patterns = patterns or SUPPORTED_PATTERNS
+
+    def get_pattern_by_name(self, pattern_name: str) -> Optional[PatternDefinition]:
+        """Find PatternDefinition by pattern name."""
+        for p in self._patterns:
+            if p.name == pattern_name:
+                return p
+        return None
 
     def get_supported_patterns(self) -> List[EmailPatternSchema]:
         """Return list of supported patterns formatted as API response schemas."""
