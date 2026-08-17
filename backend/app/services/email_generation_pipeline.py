@@ -334,10 +334,15 @@ class EmailGenerationPipeline:
                 last_name = spec.get("last_name")
 
                 if not domain or not domain.strip():
+                    logger.warning(f"[Row {row_num}]: Skipping candidate email generation — domain is missing or empty.")
                     return row_num, []
 
                 normalized_name = normalize_name_input(first_name, last_name)
                 if not normalized_name.first_name and not normalized_name.last_name:
+                    logger.warning(
+                        f"[Row {row_num}]: Skipping candidate email generation for domain '{domain}' — "
+                        "No person/employee name fields found in CSV row (first_name/last_name empty)."
+                    )
                     return row_num, []
 
                 verified_candidates_data: List[Dict[str, Any]] = []
