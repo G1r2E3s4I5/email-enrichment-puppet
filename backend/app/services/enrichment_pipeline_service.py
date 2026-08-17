@@ -187,10 +187,29 @@ class EnrichmentPipelineService:
                 or row_data.get("full_name")
                 or row_data.get("Employee Name")
                 or row_data.get("Person Name")
+                or row_data.get("Contact Name")
+                or row_data.get("contact_name")
+                or row_data.get("Contact")
+                or row_data.get("contact")
+                or row_data.get("Executive")
+                or row_data.get("CEO")
+                or row_data.get("Founder")
                 or ""
             )
-            first_name_val = row_data.get("First Name") or row_data.get("first_name") or row_data.get("FirstName") or full_name_val
-            last_name_val = row_data.get("Last Name") or row_data.get("last_name") or row_data.get("LastName") or ""
+            first_name_val = (
+                row_data.get("First Name")
+                or row_data.get("first_name")
+                or row_data.get("FirstName")
+                or row_data.get("fname")
+                or full_name_val
+            )
+            last_name_val = (
+                row_data.get("Last Name")
+                or row_data.get("last_name")
+                or row_data.get("LastName")
+                or row_data.get("lname")
+                or ""
+            )
 
             # Extract existing email if present
             existing_email_val = (

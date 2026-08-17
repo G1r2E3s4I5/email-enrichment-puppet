@@ -338,13 +338,6 @@ class EmailGenerationPipeline:
                     return row_num, []
 
                 normalized_name = normalize_name_input(first_name, last_name)
-                if not normalized_name.first_name and not normalized_name.last_name:
-                    logger.warning(
-                        f"[Row {row_num}]: Skipping candidate email generation for domain '{domain}' — "
-                        "No person/employee name fields found in CSV row (first_name/last_name empty)."
-                    )
-                    return row_num, []
-
                 verified_candidates_data: List[Dict[str, Any]] = []
                 match_found = False
 
@@ -357,7 +350,21 @@ class EmailGenerationPipeline:
                 cached_company = self._company_domain_repo.get_by_domain(domain)
                 preferred_pattern_name = cached_company.preferred_pattern if (cached_company and cached_company.preferred_pattern) else None
 
-                all_raw = self._pattern_service.generate_candidate_permutations(name=normalized_name, domain=domain)
+                if not normalized_name.first_name and not normalized_name.last_name:
+                    logger.info(
+                        f"[Row {row_num}]: No person name provided for domain '{domain}'. "
+                        "Generating generic corporate role candidates (info@, contact@, hello@, support@, sales@)."
+                    )
+                    clean_dom = domain.strip().lower()
+                    all_raw = [
+                        (f"info@{clean_dom}", "generic_info", 0.90),
+                        (f"contact@{clean_dom}", "generic_contact", 0.90),
+                        (f"hello@{clean_dom}", "generic_hello", 0.85),
+                        (f"support@{clean_dom}", "generic_support", 0.80),
+                        (f"sales@{clean_dom}", "generic_sales", 0.80),
+                    ]
+                else:
+                    all_raw = self._pattern_service.generate_candidate_permutations(name=normalized_name, domain=domain)
 
                 # Insert existing email as top-priority candidate
                 existing_email = spec.get("existing_email")
